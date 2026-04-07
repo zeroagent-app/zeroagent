@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "ZeroAgent Event Venues"
+version = "1.0.0"
+id = "artifacts/zeroagent"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18702
+
+[services.development]
+run = "pnpm --filter @workspace/zeroagent run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/zeroagent", "run", "build" ]
+publicDir = "artifacts/zeroagent/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18702"
+BASE_PATH = "/"

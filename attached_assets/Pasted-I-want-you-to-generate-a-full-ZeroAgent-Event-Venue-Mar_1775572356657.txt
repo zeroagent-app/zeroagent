@@ -1,0 +1,187 @@
+I want you to generate a full **ZeroAgent Event Venue Marketplace** project with the following requirements:
+
+---
+
+# 1. Project Overview
+
+ZeroAgent is a **digital marketplace for booking event venues** (weddings, functions, large gatherings) with these key features:
+
+- Users can **browse verified venues** with details: images, videos, pricing, capacity, location, and availability calendar.
+- Users can **send booking requests** for a selected date.
+- Owners **approve or reject booking requests**, after which an in-app chat unlocks.
+- Admins can **monitor all users, venues, and bookings**, approve/remove listings, and track payment status manually.
+- Role-based access: **Admin / Owner / User (Tenant)**.
+
+---
+
+# 2. Tech Stack
+
+- **Backend**: Node.js + Express
+- **Frontend**: React (Next.js preferred)
+- **Database**: Supabase (Postgres)
+- **Hosting**: Replit
+- **Other**: dotenv, cors
+
+---
+
+# 3. File Structure
+
+Generate the full file/folder structure as below: 
+zeroagent/
+│
+├─ README.md # Project overview & setup
+├─ package.json # Dependencies
+├─ .replit # Replit run command
+├─ .env # Supabase credentials
+│
+├─ src/
+│ ├─ index.js # Node server entry point
+│ │
+│ ├─ config/
+│ │ └─ supabaseClient.js # Supabase initialization
+│ │
+│ ├─ models/
+│ │ ├─ user.js # User CRUD + roles
+│ │ ├─ venue.js # Venue CRUD
+│ │ └─ booking.js # Booking request logic
+│ │
+│ ├─ routes/
+│ │ ├─ auth.js # Signup/Login endpoints
+│ │ ├─ venues.js # Add/Edit/Delete/List venues
+│ │ └─ bookings.js # Booking request endpoints
+│ │
+│ ├─ utils/
+│ │ └─ authMiddleware.js # Role-based access
+│ │
+│ ├─ pages/
+│ │ ├─ index.js # Home / Browse venues
+│ │ ├─ login.js
+│ │ ├─ dashboard.js # Role-based dashboards
+│ │ └─ venue/[id].js # Single venue + booking form
+│ │
+│ ├─ components/
+│ │ ├─ Header.js
+│ │ ├─ Footer.js
+│ │ ├─ VenueCard.js
+│ │ └─ BookingForm.js
+│ │
+│ └─ styles/
+│ ├─ globals.css
+│ └─ components.css
+│
+└─ public/
+└─ images/ # Placeholder venue images
+
+
+---
+
+# 4. Functional Requirements
+
+## Users
+
+- Signup / Login  
+- Roles: **Admin, Owner, User**  
+- Users can browse venues and send booking requests.
+
+## Owners
+
+- Add/Edit/Delete venue listings  
+- Upload images/videos  
+- Set price, capacity, location   
+
+---
+
+# 4. Functional Requirements
+
+## Users
+
+- Signup / Login  
+- Roles: **Admin, Owner, User**  
+- Users can browse venues and send booking requests.
+
+## Owners
+
+- Add/Edit/Delete venue listings  
+- Upload images/videos  
+- Set price, capacity, location  
+- Manage incoming booking requests  
+- Only approved users can chat (voice notes optional placeholder)
+
+## Bookings
+
+- Users send a **booking request** for a specific date  
+- Owners approve/reject requests  
+- Chat unlocks only after approval
+
+## Admin
+
+- View all users, bookings, venues  
+- Approve or remove listings  
+- Track payment status (paid/unpaid) manually
+
+---
+
+# 5. Backend Requirements
+
+- **Express server** (`src/index.js`)  
+- **Supabase integration** (`src/config/supabaseClient.js`)  
+- Models (`src/models/*.js`) for:
+  - Users
+  - Venues
+  - Bookings
+- Routes (`src/routes/*.js`) for CRUD and booking logic
+- Middleware for **role-based access** (`src/utils/authMiddleware.js`)
+
+---
+
+# 6. Frontend Requirements
+
+- **Next.js pages**:
+  - Home page (`/`) → List venues
+  - Login page (`/login`)  
+  - Dashboard (`/dashboard`) → Different views for Admin/Owner/User
+  - Venue details (`/venue/[id]`) → Show venue info + booking form
+- **Components**:
+  - Header, Footer
+  - VenueCard
+  - BookingForm
+- CSS placeholders for basic styling (`src/styles/*.css`)
+
+---
+
+# 7. Replit Setup Instructions
+
+- Run command in `.replit`: `npm install && npm run dev`  
+- Install dependencies: `express cors dotenv supabase @supabase/supabase-js react react-dom next`  
+- Add `.env` with:
+SUPABASE_URL=https://xfevqbnvqyhjwujgmsjn.supabase.co
+SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmZXZxYm52cXloand1amdtc2puIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTE2MzUsImV4cCI6MjA5MDg4NzYzNX0.uuew6MHYs8yxmuRHn-amf7x6AFz_Z89VhG56ngzWbNA
+
+
+- Ensure **Node server** + **Next.js frontend** run together  
+- Fully functional booking flow should work **end-to-end** (no missing files)
+
+---
+
+# 8. Starter Code Guidelines
+
+- Include **example CRUD logic** for venues and bookings  
+- Include **role-check middleware** for dashboards  
+- Include **example React components** to render venues and booking forms  
+- Include placeholder images in `public/images/`  
+- Use `supabase.from('table')` for all DB operations  
+- Chat logic: only enable after booking approval
+
+---
+
+# 9. Deliverable
+
+- Full Replit-ready folder structure  
+- All files **pre-filled with starter code** (backend + frontend)  
+- Project runs end-to-end after adding `.env` credentials  
+- Well-commented code for easy understanding and expansion  
+
+---
+
+**Important**: Only focus on **event venues** (weddings, functions, gatherings). **Do NOT include rentals for houses/apartments.**  
+

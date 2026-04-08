@@ -77,10 +77,10 @@ export default function VenueDetail() {
               <img src={images[selectedImage]} alt={venue.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1519167758452-f4d76ab8d6f8?w=800"; }} />
             </div>
             {images.length > 1 && (
-              <div className="flex gap-2">
+              <div className="flex gap-2 overflow-x-auto pb-1">
                 {images.map((img: string, i: number) => (
-                  <button key={i} onClick={() => setSelectedImage(i)} className={`h-16 w-24 rounded-lg overflow-hidden border-2 transition-all ${selectedImage === i ? "border-primary" : "border-transparent"}`}>
-                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  <button key={i} onClick={() => setSelectedImage(i)} className={`h-16 w-24 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${selectedImage === i ? "border-primary" : "border-transparent"}`}>
+                    <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                   </button>
                 ))}
               </div>
@@ -95,7 +95,7 @@ export default function VenueDetail() {
 
           <h1 className="text-3xl font-bold text-foreground mb-2">{venue.name}</h1>
           <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
-            <span className="flex items-center gap-1"><MapPin size={14} className="text-primary" />{venue.city}, {venue.address}</span>
+            <span className="flex items-center gap-1"><MapPin size={14} className="text-primary" />{venue.city}{venue.area ? `, ${venue.area}` : ""}, {venue.address}</span>
             <span className="flex items-center gap-1"><Users size={14} className="text-primary" />Capacity: up to {venue.capacity?.toLocaleString()}</span>
           </div>
 
@@ -106,7 +106,9 @@ export default function VenueDetail() {
               <h3 className="font-semibold mb-3">Venue Videos</h3>
               <div className="space-y-3">
                 {venue.videos.map((video: string) => (
-                  <video key={video} controls className="w-full rounded-lg bg-black" src={video} />
+                  <div key={video} className="rounded-lg overflow-hidden bg-black">
+                    <video controls className="w-full max-h-[420px]" src={video} />
+                  </div>
                 ))}
               </div>
             </div>

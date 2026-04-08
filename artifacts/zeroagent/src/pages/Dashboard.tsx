@@ -112,7 +112,8 @@ function OwnerDashboard() {
                       <h3 className="font-semibold">{v.name}</h3>
                       <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-1"><MapPin size={12} className="text-primary" />{v.city}{v.area ? ` · ${v.area}` : ""}</p>
                       <p className="text-sm text-muted-foreground flex items-center gap-1"><Users size={12} className="text-primary" />Capacity: {v.capacity?.toLocaleString()}</p>
-                      {v.videos?.length ? <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1"><Video size={12} className="text-primary" />{v.videos.length} video preview(s)</p> : null}
+                      {v.images?.length ? <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1"><Video size={12} className="text-primary" />{v.images.length} image upload(s)</p> : null}
+                      {v.videos?.length ? <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1"><Video size={12} className="text-primary" />{v.videos.length} video upload(s)</p> : null}
                     </div>
                   </div>
                   <StatusBadge status={v.status} />

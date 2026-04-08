@@ -5,6 +5,7 @@ import venuesRouter from "./venues";
 import bookingsRouter from "./bookings";
 import chatRouter from "./chat";
 import adminRouter from "./admin";
+import uploadRouter from "./upload";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use("/venues", venuesRouter);
 router.use("/bookings", bookingsRouter);
 router.use("/chat", chatRouter);
 router.use("/admin", adminRouter);
+router.use("/upload", uploadRouter);
 
 export default router;

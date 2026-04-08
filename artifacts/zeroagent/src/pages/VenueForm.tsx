@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronLeft, Upload, FileImage, Video } from "lucide-react";
+import { ChevronLeft, Upload, FileImage, Video, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 import uploadBtn from "@assets/image_1775618956380.png";
 
@@ -44,6 +44,23 @@ const AREAS = [
   "Landhi No. 06",
 ];
 
+async function uploadFiles(files: File[]): Promise<string[]> {
+  if (files.length === 0) return [];
+  const form = new FormData();
+  files.forEach(f => form.append("files", f));
+  const res = await fetch("/api/upload", {
+    method: "POST",
+    credentials: "include",
+    body: form,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Upload failed" }));
+    throw new Error(err.error ?? "Upload failed");
+  }
+  const data = await res.json();
+  return data.urls as string[];
+}
+
 export default function VenueForm() {
   const [isEditRoute, editParams] = useRoute("/dashboard/venue/:id/edit");
   const editId = isEditRoute ? parseInt(editParams?.id ?? "0") : 0;
@@ -60,6 +77,9 @@ export default function VenueForm() {
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [existingVideos, setExistingVideos] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
@@ -82,6 +102,8 @@ export default function VenueForm() {
       setCapacity(String(existing.capacity ?? ""));
       setPricePerDay(String(existing.pricePerDay ?? ""));
       setSelectedEventTypes(existing.eventTypes ?? []);
+      setExistingImages(existing.images ?? []);
+      setExistingVideos(existing.videos ?? []);
     }
   }, [existing]);
 
@@ -93,11 +115,28 @@ export default function VenueForm() {
     setSelectedEventTypes(prev => prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]);
   };
 
-  const fileNames = (files: File[]) => files.map(file => file.name);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setUploading(true);
+
+    let uploadedImageUrls: string[] = [];
+    let uploadedVideoUrls: string[] = [];
+
+    try {
+      [uploadedImageUrls, uploadedVideoUrls] = await Promise.all([
+        uploadFiles(imageFiles),
+        uploadFiles(videoFiles),
+      ]);
+    } catch (err: any) {
+      setError(err.message ?? "File upload failed.");
+      setUploading(false);
+      return;
+    }
+
+    const images = imageFiles.length > 0 ? uploadedImageUrls : existingImages;
+    const videos = videoFiles.length > 0 ? uploadedVideoUrls : existingVideos;
+
     const payload = {
       name,
       description,
@@ -107,9 +146,10 @@ export default function VenueForm() {
       capacity: parseInt(capacity),
       pricePerDay: parseFloat(pricePerDay),
       eventTypes: selectedEventTypes,
-      images: fileNames(imageFiles),
-      videos: fileNames(videoFiles),
+      images,
+      videos,
     };
+
     try {
       if (editId) {
         await updateVenue.mutateAsync({ id: editId, data: payload });
@@ -121,8 +161,12 @@ export default function VenueForm() {
       setTimeout(() => navigate("/dashboard"), 1500);
     } catch (err: any) {
       setError(err?.response?.data?.error ?? "Failed to save venue.");
+    } finally {
+      setUploading(false);
     }
   };
+
+  const isBusy = uploading || createVenue.isPending || updateVenue.isPending;
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
@@ -173,7 +217,31 @@ export default function VenueForm() {
                 <img src={uploadBtn} alt="" className="h-5 w-5 object-contain" />
                 Choose images
               </Button>
-              <p className="text-xs text-muted-foreground">{imageFiles.length ? `${imageFiles.length} image file(s) selected` : "Upload multiple venue images at once."}</p>
+              {imageFiles.length > 0 ? (
+                <div className="space-y-1">
+                  <p className="text-xs text-green-700 font-medium">{imageFiles.length} image(s) ready to upload</p>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {imageFiles.map((f, i) => (
+                      <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-border">
+                        <img src={URL.createObjectURL(f)} alt="" className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : existingImages.length > 0 ? (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">{existingImages.length} existing image(s) — choose new files to replace them</p>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {existingImages.map((url, i) => (
+                      <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-border">
+                        <img src={url} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">Upload multiple venue images at once.</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -181,7 +249,13 @@ export default function VenueForm() {
               <Button type="button" variant="outline" className="w-full justify-start gap-2" onClick={() => videoInputRef.current?.click()}>
                 <Upload size={14} /> Choose videos
               </Button>
-              <p className="text-xs text-muted-foreground">{videoFiles.length ? `${videoFiles.length} video file(s) selected` : "Upload multiple venue videos at once."}</p>
+              {videoFiles.length > 0 ? (
+                <p className="text-xs text-green-700 font-medium">{videoFiles.length} video(s) ready to upload</p>
+              ) : existingVideos.length > 0 ? (
+                <p className="text-xs text-muted-foreground">{existingVideos.length} existing video(s) — choose new files to replace them</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">Upload multiple venue videos at once.</p>
+              )}
             </div>
           </div>
         </div>
@@ -220,8 +294,10 @@ export default function VenueForm() {
           </div>
         </div>
 
-        <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white font-semibold" disabled={createVenue.isPending || updateVenue.isPending}>
-          {createVenue.isPending || updateVenue.isPending ? "Saving..." : editId ? "Update Venue" : "Submit for Approval"}
+        <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white font-semibold" disabled={isBusy}>
+          {isBusy ? (
+            <span className="flex items-center gap-2"><Loader2 size={16} className="animate-spin" />{uploading ? "Uploading files..." : "Saving..."}</span>
+          ) : editId ? "Update Venue" : "Submit for Approval"}
         </Button>
         <p className="text-xs text-muted-foreground text-center">New venues are reviewed by admin before going live.</p>
       </form>

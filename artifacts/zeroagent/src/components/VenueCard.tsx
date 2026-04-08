@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { MapPin, Users, DollarSign } from "lucide-react";
+import { MapPin, Users, PlayCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface Venue {
@@ -11,6 +11,7 @@ interface Venue {
   pricePerDay: number;
   eventTypes: string[];
   images: string[];
+  videos?: string[];
   status: string;
 }
 
@@ -31,6 +32,11 @@ export default function VenueCard({ venue }: { venue: Venue }) {
               <Badge key={type} className="bg-primary/90 text-white text-xs border-none">{type}</Badge>
             ))}
           </div>
+          {venue.videos?.length ? (
+            <div className="absolute top-3 right-3 rounded-full bg-black/60 text-white px-2 py-1 text-xs flex items-center gap-1">
+              <PlayCircle size={12} /> Video
+            </div>
+          ) : null}
         </div>
         <div className="p-4">
           <h3 className="font-semibold text-base text-card-foreground mb-1 truncate group-hover:text-primary transition-colors">{venue.name}</h3>

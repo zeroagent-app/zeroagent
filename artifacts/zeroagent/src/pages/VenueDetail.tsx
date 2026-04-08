@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Users, DollarSign, ChevronLeft, CalendarDays } from "lucide-react";
+import { MapPin, Users, ChevronLeft, CalendarDays } from "lucide-react";
 import { Link } from "wouter";
 
 const EVENT_TYPES = ["Wedding", "Mehndi", "Valima", "Engagement", "Birthday Party", "Corporate Event", "Conference", "Gala Dinner"];
@@ -71,9 +71,7 @@ export default function VenueDetail() {
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        {/* Left: Details */}
         <div className="lg:col-span-2">
-          {/* Image gallery */}
           <div className="mb-6">
             <div className="rounded-xl overflow-hidden h-80 mb-3">
               <img src={images[selectedImage]} alt={venue.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1519167758452-f4d76ab8d6f8?w=800"; }} />
@@ -103,6 +101,17 @@ export default function VenueDetail() {
 
           <p className="text-foreground/80 leading-relaxed mb-6">{venue.description}</p>
 
+          {venue.videos?.length ? (
+            <div className="bg-card border border-card-border rounded-xl p-5 mb-6">
+              <h3 className="font-semibold mb-3">Venue Videos</h3>
+              <div className="space-y-3">
+                {venue.videos.map((video: string) => (
+                  <video key={video} controls className="w-full rounded-lg bg-black" src={video} />
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           <div className="bg-muted/50 rounded-xl p-5 border border-border">
             <h3 className="font-semibold mb-3">Pricing</h3>
             <div className="flex items-center gap-2">
@@ -112,7 +121,6 @@ export default function VenueDetail() {
           </div>
         </div>
 
-        {/* Right: Booking form */}
         <div>
           <div className="bg-card border border-card-border rounded-xl p-6 shadow-sm sticky top-20">
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><CalendarDays size={18} className="text-primary" />Request a Booking</h2>

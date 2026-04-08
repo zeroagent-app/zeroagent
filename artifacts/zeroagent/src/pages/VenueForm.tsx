@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Upload } from "lucide-react";
 import { Link } from "wouter";
 
 const EVENT_TYPES = ["Wedding", "Mehndi", "Valima", "Engagement", "Birthday Party", "Corporate Event", "Conference", "Gala Dinner"];
@@ -28,6 +28,9 @@ export default function VenueForm() {
   const [pricePerDay, setPricePerDay] = useState("");
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
   const [imageUrls, setImageUrls] = useState("");
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [videoUrls, setVideoUrls] = useState("");
+  const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
@@ -61,13 +64,19 @@ export default function VenueForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    const images = imageUrls.split("\n").map(s => s.trim()).filter(Boolean);
+    const imageUrlList = imageUrls.split("\n").map(s => s.trim()).filter(Boolean);
+    const imageFileList = imageFiles.map(file => URL.createObjectURL(file));
+    const videoUrlList = videoUrls.split("\n").map(s => s.trim()).filter(Boolean);
+    const videoFileList = videoFiles.map(file => URL.createObjectURL(file));
     const payload = {
-      name, description, city, address,
+      name,
+      description: [description, videoUrlList.length ? `Videos: ${videoUrlList.join(", ")}` : "", videoFileList.length ? `Uploaded videos: ${videoFileList.join(", ")}` : ""].filter(Boolean).join("\n\n"),
+      city,
+      address,
       capacity: parseInt(capacity),
       pricePerDay: parseFloat(pricePerDay),
       eventTypes: selectedEventTypes,
-      images,
+      images: [...imageUrlList, ...imageFileList],
     };
     try {
       if (editId) {
@@ -111,6 +120,32 @@ export default function VenueForm() {
           <Textarea placeholder="Describe your venue..." value={description} onChange={e => setDescription(e.target.value)} required rows={4} />
         </div>
 
+        <div className="space-y-1.5">
+          <Label>Hero / Media</Label>
+          <div className="rounded-xl border border-dashed border-border p-4 space-y-4 bg-muted/30">
+            <div className="space-y-1.5">
+              <Label className="text-sm text-muted-foreground">Image URLs</Label>
+              <Textarea placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg" value={imageUrls} onChange={e => setImageUrls(e.target.value)} rows={3} />
+              <p className="text-xs text-muted-foreground">Paste full image URLs, one per line</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm text-muted-foreground flex items-center gap-2"><Upload size={14} /> Upload Images</Label>
+              <Input type="file" accept="image/*" multiple onChange={e => setImageFiles(Array.from(e.target.files ?? []))} />
+              <p className="text-xs text-muted-foreground">Upload image files from your device. They are stored as preview links for now.</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm text-muted-foreground flex items-center gap-2"><Upload size={14} /> Video URLs</Label>
+              <Textarea placeholder="https://example.com/video.mp4" value={videoUrls} onChange={e => setVideoUrls(e.target.value)} rows={2} />
+              <p className="text-xs text-muted-foreground">Add video links for venue walkthroughs or promos</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm text-muted-foreground flex items-center gap-2"><Upload size={14} /> Upload Videos</Label>
+              <Input type="file" accept="video/*" multiple onChange={e => setVideoFiles(Array.from(e.target.files ?? []))} />
+              <p className="text-xs text-muted-foreground">Upload video files for venue previews</p>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label>City</Label>
@@ -146,12 +181,6 @@ export default function VenueForm() {
               </div>
             ))}
           </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>Image URLs (one per line)</Label>
-          <Textarea placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg" value={imageUrls} onChange={e => setImageUrls(e.target.value)} rows={4} />
-          <p className="text-xs text-muted-foreground">Paste full image URLs, one per line</p>
         </div>
 
         <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white font-semibold" disabled={createVenue.isPending || updateVenue.isPending}>

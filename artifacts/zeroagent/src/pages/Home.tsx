@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import VenueCard from "@/components/VenueCard";
 import { MapPin, Shield, MessageSquare, Star, ChevronRight, Search } from "lucide-react";
+import heroBg from "@assets/hero-bg_1775614512861.png";
 
 export default function Home() {
   const [city, setCity] = useState("");
@@ -21,11 +22,10 @@ export default function Home() {
 
   return (
     <div>
-      {/* Hero */}
       <section className="relative min-h-[600px] bg-secondary flex items-center overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center opacity-30"
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1519167758452-f4d76ab8d6f8?w=1600')" }}
+          style={{ backgroundImage: `url(${heroBg})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-secondary via-secondary/90 to-secondary/60" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
@@ -57,7 +57,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats */}
       <section className="bg-white border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
@@ -95,7 +94,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Venues */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -119,7 +117,6 @@ export default function Home() {
         )}
       </section>
 
-      {/* CTA */}
       <section className="bg-primary py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-3">Own a Premium Event Space?</h2>

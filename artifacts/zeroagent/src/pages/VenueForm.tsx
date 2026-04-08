@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useRoute } from "wouter";
 import { useCreateVenue, useUpdateVenue, useGetVenue } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/auth";
@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronLeft, Upload } from "lucide-react";
+import { ChevronLeft, Upload, FileImage, Video } from "lucide-react";
 import { Link } from "wouter";
+import uploadBtn from "@assets/image_1775618956380.png";
 
 const EVENT_TYPES = ["Wedding", "Mehndi", "Valima", "Engagement", "Birthday Party", "Corporate Event", "Conference", "Gala Dinner"];
 const AREAS = [
@@ -61,6 +62,9 @@ export default function VenueForm() {
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const videoInputRef = useRef<HTMLInputElement | null>(null);
 
   const createVenue = useCreateVenue();
   const updateVenue = useUpdateVenue();
@@ -160,15 +164,24 @@ export default function VenueForm() {
         <div className="space-y-1.5">
           <Label>Media Uploads</Label>
           <div className="rounded-xl border border-dashed border-border p-4 space-y-4 bg-muted/30">
-            <div className="space-y-1.5">
-              <Label className="text-sm text-muted-foreground flex items-center gap-2"><Upload size={14} /> Upload Images</Label>
-              <Input type="file" accept="image/*" multiple onChange={e => setImageFiles(Array.from(e.target.files ?? []))} />
-              <p className="text-xs text-muted-foreground">Upload multiple venue images at once.</p>
+            <input ref={imageInputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => setImageFiles(Array.from(e.target.files ?? []))} />
+            <input ref={videoInputRef} type="file" accept="video/*" multiple className="hidden" onChange={e => setVideoFiles(Array.from(e.target.files ?? []))} />
+
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground flex items-center gap-2"><FileImage size={14} /> Images</Label>
+              <Button type="button" variant="outline" className="w-full justify-start gap-2" onClick={() => imageInputRef.current?.click()}>
+                <img src={uploadBtn} alt="" className="h-5 w-5 object-contain" />
+                Choose images
+              </Button>
+              <p className="text-xs text-muted-foreground">{imageFiles.length ? `${imageFiles.length} image file(s) selected` : "Upload multiple venue images at once."}</p>
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm text-muted-foreground flex items-center gap-2"><Upload size={14} /> Upload Videos</Label>
-              <Input type="file" accept="video/*" multiple onChange={e => setVideoFiles(Array.from(e.target.files ?? []))} />
-              <p className="text-xs text-muted-foreground">Upload multiple venue videos at once.</p>
+
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground flex items-center gap-2"><Video size={14} /> Videos</Label>
+              <Button type="button" variant="outline" className="w-full justify-start gap-2" onClick={() => videoInputRef.current?.click()}>
+                <Upload size={14} /> Choose videos
+              </Button>
+              <p className="text-xs text-muted-foreground">{videoFiles.length ? `${videoFiles.length} video file(s) selected` : "Upload multiple venue videos at once."}</p>
             </div>
           </div>
         </div>

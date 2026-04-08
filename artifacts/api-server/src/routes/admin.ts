@@ -19,11 +19,13 @@ router.get("/venues", requireRole("admin"), async (req, res): Promise<void> => {
       name: venuesTable.name,
       description: venuesTable.description,
       city: venuesTable.city,
+      area: venuesTable.area,
       address: venuesTable.address,
       capacity: venuesTable.capacity,
       pricePerDay: venuesTable.pricePerDay,
       eventTypes: venuesTable.eventTypes,
       images: venuesTable.images,
+      videos: venuesTable.videos,
       status: venuesTable.status,
       createdAt: venuesTable.createdAt,
     })

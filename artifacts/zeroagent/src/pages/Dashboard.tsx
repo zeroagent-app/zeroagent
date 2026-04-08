@@ -5,7 +5,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Users, Plus, MessageSquare, Check, X, DollarSign, LogIn, Calendar, Video } from "lucide-react";
+import { MapPin, Users, Plus, MessageSquare, Check, X, DollarSign, LogIn, Calendar, Video, Eye } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState } from "react";
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
@@ -19,8 +21,54 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[status] ?? "bg-gray-100 text-gray-600"}`}>{status}</span>;
 }
 
+function VenuePreview({ venue }: { venue: any }) {
+  const [selectedImage, setSelectedImage] = useState(0);
+  const images = venue?.images?.length ? venue.images : [];
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <div className="rounded-xl overflow-hidden h-72 bg-muted mb-3">
+          <img src={images[selectedImage] || "https://images.unsplash.com/photo-1519167758452-f4d76ab8d6f8?w=800"} alt={venue.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1519167758452-f4d76ab8d6f8?w=800"; }} />
+        </div>
+        {images.length > 1 && (
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {images.map((img: string, i: number) => (
+              <button key={img + i} type="button" onClick={() => setSelectedImage(i)} className={`h-16 w-24 rounded-lg overflow-hidden border-2 flex-shrink-0 ${selectedImage === i ? "border-primary" : "border-transparent"}`}>
+                <img src={img} alt="" className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <div>
+        <h2 className="text-2xl font-bold">{venue.name}</h2>
+        <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1"><MapPin size={13} className="text-primary" />{venue.city}{venue.area ? ` · ${venue.area}` : ""} · {venue.address}</p>
+        <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1"><Users size={13} className="text-primary" />Capacity: {venue.capacity?.toLocaleString()}</p>
+        <p className="text-sm text-muted-foreground mt-1">Owner: {venue.ownerName}</p>
+        <p className="mt-3 text-foreground/80 whitespace-pre-line">{venue.description}</p>
+      </div>
+      {!!venue.eventTypes?.length && (
+        <div className="flex flex-wrap gap-2">
+          {venue.eventTypes.map((t: string) => <Badge key={t} variant="secondary" className="bg-primary/10 text-primary border-none">{t}</Badge>)}
+        </div>
+      )}
+      {!!venue.videos?.length && (
+        <div className="space-y-3">
+          <h3 className="font-semibold">Videos</h3>
+          {venue.videos.map((video: string) => (
+            <div key={video} className="rounded-lg overflow-hidden bg-black">
+              <video controls className="w-full max-h-[320px]" src={video} />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function UserDashboard() {
-  const { data } = useListBookings({}, { query: {} });
+  const { data } = useListBookings(undefined, { query: { queryKey: ["bookings"] } });
   const bookings = (data as any[]) ?? [];
   const cancelBooking = useCancelBooking();
   const queryClient = useQueryClient();
@@ -73,7 +121,7 @@ function UserDashboard() {
 
 function OwnerDashboard() {
   const { data: venues } = useGetMyVenues();
-  const { data: bookings } = useListBookings({}, { query: {} });
+  const { data: bookings } = useListBookings(undefined, { query: { queryKey: ["bookings"] } });
   const approveBooking = useApproveBooking();
   const rejectBooking = useRejectBooking();
   const deleteVenue = useDeleteVenue();
@@ -178,87 +226,108 @@ function AdminDashboard() {
   const rejectVenue = useAdminRejectVenue();
   const updatePayment = useUpdatePaymentStatus();
   const queryClient = useQueryClient();
+  const [reviewVenue, setReviewVenue] = useState<any | null>(null);
   const s = stats as any;
   const allUsers = (users as any[]) ?? [];
   const allVenues = (venues as any[]) ?? [];
   const allBookings = (bookings as any[]) ?? [];
 
   return (
-    <Tabs defaultValue="overview">
-      <TabsList className="mb-6 flex-wrap">
-        <TabsTrigger value="overview">Overview</TabsTrigger>
-        <TabsTrigger value="venues">Venues</TabsTrigger>
-        <TabsTrigger value="bookings">Bookings</TabsTrigger>
-        <TabsTrigger value="users">Users</TabsTrigger>
-      </TabsList>
-
-      <TabsContent value="venues">
-        <h2 className="text-lg font-bold mb-4">All Venue Listings</h2>
-        <div className="space-y-3">
-          {allVenues.map((v: any) => (
-            <div key={v.id} className="bg-card border border-card-border rounded-xl p-4 shadow-sm flex items-center justify-between gap-4">
-              <div>
-                <h3 className="font-medium">{v.name}</h3>
-                <p className="text-sm text-muted-foreground">{v.city}{v.area ? ` · ${v.area}` : ""} · Owner: {v.ownerName} · {v.capacity?.toLocaleString()} guests</p>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <StatusBadge status={v.status} />
-                {v.status === "pending" && (
-                  <>
-                    <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={async () => { await approveVenue.mutateAsync({ id: v.id }); queryClient.invalidateQueries(); }}>Approve</Button>
-                    <Button size="sm" variant="outline" className="text-destructive border-destructive/30" onClick={async () => { await rejectVenue.mutateAsync({ id: v.id }); queryClient.invalidateQueries(); }}>Reject</Button>
-                  </>
-                )}
-              </div>
+    <>
+      <Dialog open={!!reviewVenue} onOpenChange={(open) => !open && setReviewVenue(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Venue Review</DialogTitle>
+          </DialogHeader>
+          {reviewVenue && <VenuePreview venue={reviewVenue} />}
+          {reviewVenue && (
+            <div className="flex gap-2 pt-2">
+              <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={async () => { await approveVenue.mutateAsync({ id: reviewVenue.id }); setReviewVenue(null); queryClient.invalidateQueries(); }}>Approve</Button>
+              <Button variant="outline" className="text-destructive border-destructive/30" onClick={async () => { await rejectVenue.mutateAsync({ id: reviewVenue.id }); setReviewVenue(null); queryClient.invalidateQueries(); }}>Reject</Button>
             </div>
-          ))}
-        </div>
-      </TabsContent>
+          )}
+        </DialogContent>
+      </Dialog>
 
-      <TabsContent value="bookings">
-        <h2 className="text-lg font-bold mb-4">All Bookings</h2>
-        <div className="space-y-3">
-          {allBookings.map((b: any) => (
-            <div key={b.id} className="bg-card border border-card-border rounded-xl p-4 shadow-sm">
-              <div className="flex items-start justify-between gap-4">
+      <Tabs defaultValue="overview">
+        <TabsList className="mb-6 flex-wrap">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="venues">Venues</TabsTrigger>
+          <TabsTrigger value="bookings">Bookings</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="venues">
+          <h2 className="text-lg font-bold mb-4">All Venue Listings</h2>
+          <div className="space-y-3">
+            {allVenues.map((v: any) => (
+              <div key={v.id} className="bg-card border border-card-border rounded-xl p-4 shadow-sm flex items-center justify-between gap-4">
                 <div>
-                  <h3 className="font-medium">{b.venueName}</h3>
-                  <p className="text-sm text-muted-foreground">By {b.userName} · {b.eventType} · {b.guestCount} guests · {b.eventDate}</p>
+                  <h3 className="font-medium">{v.name}</h3>
+                  <p className="text-sm text-muted-foreground">{v.city}{v.area ? ` · ${v.area}` : ""} · Owner: {v.ownerName} · {v.capacity?.toLocaleString()} guests</p>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
-                  <StatusBadge status={b.status} />
-                  <StatusBadge status={b.paymentStatus} />
-                  <Button size="sm" variant="outline" className="text-xs" onClick={async () => {
-                    const newStatus = b.paymentStatus === "paid" ? "unpaid" : "paid";
-                    await updatePayment.mutateAsync({ id: b.id, data: { paymentStatus: newStatus } });
-                    queryClient.invalidateQueries();
-                  }}>
-                    <DollarSign size={12} className="mr-1" />Toggle Payment
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <StatusBadge status={v.status} />
+                  <Button size="sm" variant="outline" onClick={() => setReviewVenue(v)}>
+                    <Eye size={14} className="mr-1" /> Review
                   </Button>
+                  {v.status === "pending" && (
+                    <>
+                      <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={async () => { await approveVenue.mutateAsync({ id: v.id }); queryClient.invalidateQueries(); }}>Approve</Button>
+                      <Button size="sm" variant="outline" className="text-destructive border-destructive/30" onClick={async () => { await rejectVenue.mutateAsync({ id: v.id }); queryClient.invalidateQueries(); }}>Reject</Button>
+                    </>
+                  )}
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </TabsContent>
+            ))}
+          </div>
+        </TabsContent>
 
-      <TabsContent value="users">
-        <h2 className="text-lg font-bold mb-4">All Users</h2>
-        <div className="space-y-2">
-          {allUsers.map((u: any) => (
-            <div key={u.id} className="bg-card border border-card-border rounded-xl p-4 shadow-sm flex items-center justify-between">
-              <div>
-                <p className="font-medium">{u.name}</p>
-                <p className="text-sm text-muted-foreground">{u.email}</p>
+        <TabsContent value="bookings">
+          <h2 className="text-lg font-bold mb-4">All Bookings</h2>
+          <div className="space-y-3">
+            {allBookings.map((b: any) => (
+              <div key={b.id} className="bg-card border border-card-border rounded-xl p-4 shadow-sm">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="font-medium">{b.venueName}</h3>
+                    <p className="text-sm text-muted-foreground">By {b.userName} · {b.eventType} · {b.guestCount} guests · {b.eventDate}</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+                    <StatusBadge status={b.status} />
+                    <StatusBadge status={b.paymentStatus} />
+                    <Button size="sm" variant="outline" className="text-xs" onClick={async () => {
+                      const newStatus = b.paymentStatus === "paid" ? "unpaid" : "paid";
+                      await updatePayment.mutateAsync({ id: b.id, data: { paymentStatus: newStatus } });
+                      queryClient.invalidateQueries();
+                    }}>
+                      <DollarSign size={12} className="mr-1" />Toggle Payment
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <Badge variant="outline" className={u.role === "admin" ? "border-red-300 text-red-700" : u.role === "owner" ? "border-purple-300 text-purple-700" : "border-blue-300 text-blue-700"}>
-                {u.role}
-              </Badge>
-            </div>
-          ))}
-        </div>
-      </TabsContent>
-    </Tabs>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="users">
+          <h2 className="text-lg font-bold mb-4">All Users</h2>
+          <div className="space-y-2">
+            {allUsers.map((u: any) => (
+              <div key={u.id} className="bg-card border border-card-border rounded-xl p-4 shadow-sm flex items-center justify-between">
+                <div>
+                  <p className="font-medium">{u.name}</p>
+                  <p className="text-sm text-muted-foreground">{u.email}</p>
+                </div>
+                <Badge variant="outline" className={u.role === "admin" ? "border-red-300 text-red-700" : u.role === "owner" ? "border-purple-300 text-purple-700" : "border-blue-300 text-blue-700"}>
+                  {u.role}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </>
   );
 }
 

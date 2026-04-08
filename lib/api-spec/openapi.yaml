@@ -22,101 +22,6 @@ tags:
     description: In-app messaging
 
 paths:
-  /healthz:
-    get:
-      operationId: healthCheck
-      tags: [health]
-      summary: Health check
-      responses:
-        "200":
-          description: Healthy
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HealthStatus"
-
-  /auth/register:
-    post:
-      operationId: register
-      tags: [auth]
-      summary: Register a new user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/RegisterBody"
-      responses:
-        "201":
-          description: User registered
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthResponse"
-        "400":
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
-  /auth/login:
-    post:
-      operationId: login
-      tags: [auth]
-      summary: Login
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/LoginBody"
-      responses:
-        "200":
-          description: Logged in
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthResponse"
-        "401":
-          description: Invalid credentials
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
-  /auth/logout:
-    post:
-      operationId: logout
-      tags: [auth]
-      summary: Logout
-      responses:
-        "200":
-          description: Logged out
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MessageResponse"
-
-  /auth/me:
-    get:
-      operationId: getMe
-      tags: [auth]
-      summary: Get current user
-      responses:
-        "200":
-          description: Current user
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-        "401":
-          description: Not authenticated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
   /venues:
     get:
       operationId: listVenues
@@ -124,6 +29,10 @@ paths:
       summary: List all approved venues
       parameters:
         - name: city
+          in: query
+          schema:
+            type: string
+        - name: area
           in: query
           schema:
             type: string
@@ -156,7 +65,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/VenueListResponse"
-
     post:
       operationId: createVenue
       tags: [venues]
@@ -174,12 +82,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Venue"
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
 
   /venues/featured:
     get:
@@ -195,19 +97,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Venue"
-
-  /venues/stats:
-    get:
-      operationId: getVenueStats
-      tags: [venues]
-      summary: Platform stats (total venues, bookings, cities)
-      responses:
-        "200":
-          description: Stats
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PlatformStats"
 
   /venues/{id}:
     get:
@@ -227,13 +116,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/VenueDetail"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
     put:
       operationId: updateVenue
       tags: [venues]
@@ -258,401 +140,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Venue"
 
-    delete:
-      operationId: deleteVenue
-      tags: [venues]
-      summary: Delete venue (owner or admin)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Deleted
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MessageResponse"
-
-  /venues/my:
-    get:
-      operationId: getMyVenues
-      tags: [venues]
-      summary: Get current owner's venues
-      responses:
-        "200":
-          description: My venues
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Venue"
-
-  /bookings:
-    get:
-      operationId: listBookings
-      tags: [bookings]
-      summary: List bookings (filtered by role)
-      parameters:
-        - name: status
-          in: query
-          schema:
-            type: string
-            enum: [pending, approved, rejected, cancelled]
-      responses:
-        "200":
-          description: Bookings list
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Booking"
-
-    post:
-      operationId: createBooking
-      tags: [bookings]
-      summary: Create a booking request
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateBookingBody"
-      responses:
-        "201":
-          description: Booking created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Booking"
-
-  /bookings/{id}:
-    get:
-      operationId: getBooking
-      tags: [bookings]
-      summary: Get booking by ID
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Booking detail
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BookingDetail"
-
-  /bookings/{id}/approve:
-    post:
-      operationId: approveBooking
-      tags: [bookings]
-      summary: Approve a booking request (owner only)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Booking approved
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Booking"
-
-  /bookings/{id}/reject:
-    post:
-      operationId: rejectBooking
-      tags: [bookings]
-      summary: Reject a booking request (owner only)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/RejectBookingBody"
-      responses:
-        "200":
-          description: Booking rejected
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Booking"
-
-  /bookings/{id}/cancel:
-    post:
-      operationId: cancelBooking
-      tags: [bookings]
-      summary: Cancel a booking (user only)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Booking cancelled
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Booking"
-
-  /bookings/{id}/payment:
-    patch:
-      operationId: updatePaymentStatus
-      tags: [bookings]
-      summary: Update payment status (admin only)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdatePaymentBody"
-      responses:
-        "200":
-          description: Payment updated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Booking"
-
-  /chat/{bookingId}:
-    get:
-      operationId: getChatMessages
-      tags: [chat]
-      summary: Get chat messages for approved booking
-      parameters:
-        - name: bookingId
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Messages
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ChatMessage"
-
-    post:
-      operationId: sendChatMessage
-      tags: [chat]
-      summary: Send a message in an approved booking chat
-      parameters:
-        - name: bookingId
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SendMessageBody"
-      responses:
-        "201":
-          description: Message sent
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ChatMessage"
-
-  /admin/users:
-    get:
-      operationId: adminListUsers
-      tags: [admin]
-      summary: List all users (admin only)
-      responses:
-        "200":
-          description: All users
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/User"
-
-  /admin/venues:
-    get:
-      operationId: adminListVenues
-      tags: [admin]
-      summary: List all venues (admin only)
-      responses:
-        "200":
-          description: All venues
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Venue"
-
-  /admin/venues/{id}/approve:
-    post:
-      operationId: adminApproveVenue
-      tags: [admin]
-      summary: Approve a venue listing (admin only)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Venue approved
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Venue"
-
-  /admin/venues/{id}/reject:
-    post:
-      operationId: adminRejectVenue
-      tags: [admin]
-      summary: Reject a venue listing (admin only)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Venue rejected
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Venue"
-
-  /admin/bookings:
-    get:
-      operationId: adminListBookings
-      tags: [admin]
-      summary: List all bookings (admin only)
-      responses:
-        "200":
-          description: All bookings
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Booking"
-
-  /admin/stats:
-    get:
-      operationId: adminGetStats
-      tags: [admin]
-      summary: Admin dashboard statistics
-      responses:
-        "200":
-          description: Dashboard stats
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AdminStats"
-
 components:
   schemas:
-    HealthStatus:
-      type: object
-      properties:
-        status:
-          type: string
-      required: [status]
-
-    ErrorResponse:
-      type: object
-      properties:
-        error:
-          type: string
-      required: [error]
-
-    MessageResponse:
-      type: object
-      properties:
-        message:
-          type: string
-      required: [message]
-
-    RegisterBody:
-      type: object
-      properties:
-        name:
-          type: string
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-          minLength: 6
-        role:
-          type: string
-          enum: [user, owner]
-          default: user
-      required: [name, email, password]
-
-    LoginBody:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-      required: [email, password]
-
-    AuthResponse:
-      type: object
-      properties:
-        user:
-          $ref: "#/components/schemas/User"
-        message:
-          type: string
-      required: [user, message]
-
-    User:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        email:
-          type: string
-        role:
-          type: string
-          enum: [admin, owner, user]
-        createdAt:
-          type: string
-          format: date-time
-      required: [id, name, email, role, createdAt]
-
     Venue:
       type: object
       properties:
@@ -668,6 +157,8 @@ components:
           type: string
         city:
           type: string
+        area:
+          type: string
         address:
           type: string
         capacity:
@@ -682,13 +173,17 @@ components:
           type: array
           items:
             type: string
+        videos:
+          type: array
+          items:
+            type: string
         status:
           type: string
           enum: [pending, approved, rejected]
         createdAt:
           type: string
           format: date-time
-      required: [id, ownerId, name, description, city, address, capacity, pricePerDay, eventTypes, images, status, createdAt]
+      required: [id, ownerId, name, description, city, address, capacity, pricePerDay, eventTypes, images, videos, status, createdAt]
 
     VenueDetail:
       allOf:
@@ -725,6 +220,8 @@ components:
           type: string
         city:
           type: string
+        area:
+          type: string
         address:
           type: string
         capacity:
@@ -736,6 +233,10 @@ components:
           items:
             type: string
         images:
+          type: array
+          items:
+            type: string
+        videos:
           type: array
           items:
             type: string
@@ -750,6 +251,8 @@ components:
           type: string
         city:
           type: string
+        area:
+          type: string
         address:
           type: string
         capacity:
@@ -764,143 +267,7 @@ components:
           type: array
           items:
             type: string
-
-    PlatformStats:
-      type: object
-      properties:
-        totalVenues:
-          type: integer
-        totalBookings:
-          type: integer
-        totalCities:
-          type: integer
-        totalUsers:
-          type: integer
-      required: [totalVenues, totalBookings, totalCities, totalUsers]
-
-    Booking:
-      type: object
-      properties:
-        id:
-          type: integer
-        venueId:
-          type: integer
-        venueName:
-          type: string
-        userId:
-          type: integer
-        userName:
-          type: string
-        eventDate:
-          type: string
-          format: date
-        eventType:
-          type: string
-        guestCount:
-          type: integer
-        status:
-          type: string
-          enum: [pending, approved, rejected, cancelled]
-        paymentStatus:
-          type: string
-          enum: [unpaid, paid]
-        notes:
-          type: string
-        rejectionReason:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-      required: [id, venueId, venueName, userId, userName, eventDate, eventType, guestCount, status, paymentStatus, createdAt]
-
-    BookingDetail:
-      allOf:
-        - $ref: "#/components/schemas/Booking"
-        - type: object
-          properties:
-            venue:
-              $ref: "#/components/schemas/Venue"
-            chatEnabled:
-              type: boolean
-
-    CreateBookingBody:
-      type: object
-      properties:
-        venueId:
-          type: integer
-        eventDate:
-          type: string
-          format: date
-        eventType:
-          type: string
-        guestCount:
-          type: integer
-        notes:
-          type: string
-      required: [venueId, eventDate, eventType, guestCount]
-
-    RejectBookingBody:
-      type: object
-      properties:
-        reason:
-          type: string
-
-    UpdatePaymentBody:
-      type: object
-      properties:
-        paymentStatus:
-          type: string
-          enum: [unpaid, paid]
-      required: [paymentStatus]
-
-    ChatMessage:
-      type: object
-      properties:
-        id:
-          type: integer
-        bookingId:
-          type: integer
-        senderId:
-          type: integer
-        senderName:
-          type: string
-        senderRole:
-          type: string
-        message:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-      required: [id, bookingId, senderId, senderName, senderRole, message, createdAt]
-
-    SendMessageBody:
-      type: object
-      properties:
-        message:
-          type: string
-      required: [message]
-
-    AdminStats:
-      type: object
-      properties:
-        totalUsers:
-          type: integer
-        totalOwners:
-          type: integer
-        totalVenues:
-          type: integer
-        pendingVenues:
-          type: integer
-        totalBookings:
-          type: integer
-        pendingBookings:
-          type: integer
-        approvedBookings:
-          type: integer
-        totalRevenue:
-          type: number
-        paidBookings:
-          type: integer
-        unpaidBookings:
-          type: integer
-      required: [totalUsers, totalOwners, totalVenues, pendingVenues, totalBookings, pendingBookings, approvedBookings, totalRevenue, paidBookings, unpaidBookings]
+        videos:
+          type: array
+          items:
+            type: string

@@ -7,6 +7,7 @@ interface Venue {
   name: string;
   description: string;
   city: string;
+  area?: string;
   capacity: number;
   pricePerDay: number;
   eventTypes: string[];
@@ -42,7 +43,7 @@ export default function VenueCard({ venue }: { venue: Venue }) {
           <h3 className="font-semibold text-base text-card-foreground mb-1 truncate group-hover:text-primary transition-colors">{venue.name}</h3>
           <p className="text-muted-foreground text-sm line-clamp-2 mb-3">{venue.description}</p>
           <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span className="flex items-center gap-1"><MapPin size={13} className="text-primary" />{venue.city}</span>
+            <span className="flex items-center gap-1"><MapPin size={13} className="text-primary" />{venue.city}{venue.area ? ` · ${venue.area}` : ""}</span>
             <span className="flex items-center gap-1"><Users size={13} className="text-primary" />up to {venue.capacity.toLocaleString()}</span>
           </div>
           <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">

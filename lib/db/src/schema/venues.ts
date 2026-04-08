@@ -8,11 +8,13 @@ export const venuesTable = pgTable("venues", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   city: text("city").notNull(),
+  area: text("area"),
   address: text("address").notNull(),
   capacity: integer("capacity").notNull(),
   pricePerDay: numeric("price_per_day", { precision: 10, scale: 2 }).notNull(),
   eventTypes: text("event_types").array().notNull().default([]),
   images: text("images").array().notNull().default([]),
+  videos: text("videos").array().notNull().default([]),
   status: text("status", { enum: ["pending", "approved", "rejected"] }).notNull().default("pending"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

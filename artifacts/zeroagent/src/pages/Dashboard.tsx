@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import { useAuth } from "@/contexts/auth";
 import { useListBookings, useGetMyVenues, useDeleteVenue, useCancelBooking, useApproveBooking, useRejectBooking, useAdminListUsers, useAdminListVenues, useAdminListBookings, useAdminGetStats, useAdminApproveVenue, useAdminRejectVenue, useUpdatePaymentStatus } from "@workspace/api-client-react";
@@ -6,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Users, Plus, MessageSquare, Check, X, DollarSign, LogIn, Calendar } from "lucide-react";
+import { MapPin, Users, Plus, MessageSquare, Check, X, DollarSign, LogIn, Calendar, Video } from "lucide-react";
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
@@ -111,8 +110,9 @@ function OwnerDashboard() {
                     {v.images?.[0] && <img src={v.images[0]} className="w-16 h-16 rounded-lg object-cover" alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
                     <div>
                       <h3 className="font-semibold">{v.name}</h3>
-                      <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-1"><MapPin size={12} className="text-primary" />{v.city}</p>
+                      <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-1"><MapPin size={12} className="text-primary" />{v.city}{v.area ? ` · ${v.area}` : ""}</p>
                       <p className="text-sm text-muted-foreground flex items-center gap-1"><Users size={12} className="text-primary" />Capacity: {v.capacity?.toLocaleString()}</p>
+                      {v.videos?.length ? <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1"><Video size={12} className="text-primary" />{v.videos.length} video preview(s)</p> : null}
                     </div>
                   </div>
                   <StatusBadge status={v.status} />
@@ -191,28 +191,6 @@ function AdminDashboard() {
         <TabsTrigger value="users">Users</TabsTrigger>
       </TabsList>
 
-      <TabsContent value="overview">
-        {s && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: "Total Users", value: s.totalUsers, color: "text-blue-600" },
-              { label: "Venue Owners", value: s.totalOwners, color: "text-purple-600" },
-              { label: "Total Venues", value: s.totalVenues, color: "text-primary" },
-              { label: "Pending Venues", value: s.pendingVenues, color: "text-yellow-600" },
-              { label: "Total Bookings", value: s.totalBookings, color: "text-primary" },
-              { label: "Pending Bookings", value: s.pendingBookings, color: "text-yellow-600" },
-              { label: "Paid Bookings", value: s.paidBookings, color: "text-green-600" },
-              { label: "Unpaid Bookings", value: s.unpaidBookings, color: "text-red-600" },
-            ].map(stat => (
-              <div key={stat.label} className="bg-card border border-card-border rounded-xl p-5 shadow-sm">
-                <div className={`text-3xl font-bold ${stat.color} mb-1`}>{stat.value ?? 0}</div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        )}
-      </TabsContent>
-
       <TabsContent value="venues">
         <h2 className="text-lg font-bold mb-4">All Venue Listings</h2>
         <div className="space-y-3">
@@ -220,7 +198,7 @@ function AdminDashboard() {
             <div key={v.id} className="bg-card border border-card-border rounded-xl p-4 shadow-sm flex items-center justify-between gap-4">
               <div>
                 <h3 className="font-medium">{v.name}</h3>
-                <p className="text-sm text-muted-foreground">{v.city} · Owner: {v.ownerName} · {v.capacity?.toLocaleString()} guests</p>
+                <p className="text-sm text-muted-foreground">{v.city}{v.area ? ` · ${v.area}` : ""} · Owner: {v.ownerName} · {v.capacity?.toLocaleString()} guests</p>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <StatusBadge status={v.status} />

@@ -35,7 +35,7 @@ router.get("/venues", requireRole("admin"), async (req, res): Promise<void> => {
 });
 
 router.post("/venues/:id/approve", requireRole("admin"), async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id ?? "");
+  const id = parseInt(String(req.params.id ?? ""));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const [updated] = await db.update(venuesTable).set({ status: "approved" }).where(eq(venuesTable.id, id)).returning();
   if (!updated) { res.status(404).json({ error: "Not found" }); return; }
@@ -44,7 +44,7 @@ router.post("/venues/:id/approve", requireRole("admin"), async (req, res): Promi
 });
 
 router.post("/venues/:id/reject", requireRole("admin"), async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id ?? "");
+  const id = parseInt(String(req.params.id ?? ""));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const [updated] = await db.update(venuesTable).set({ status: "rejected" }).where(eq(venuesTable.id, id)).returning();
   if (!updated) { res.status(404).json({ error: "Not found" }); return; }

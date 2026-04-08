@@ -53,12 +53,13 @@ router.post("/", requireRole("user"), async (req: AuthRequest, res): Promise<voi
   const parsed = CreateBookingBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const { venueId, eventDate, eventType, guestCount, notes } = parsed.data;
+  const eventDateStr = eventDate instanceof Date ? eventDate.toISOString().split("T")[0]! : String(eventDate);
   const [venue] = await db.select().from(venuesTable).where(eq(venuesTable.id, venueId));
   if (!venue || venue.status !== "approved") { res.status(400).json({ error: "Venue not available" }); return; }
   const [booking] = await db.insert(bookingsTable).values({
     venueId,
     userId: req.userId!,
-    eventDate,
+    eventDate: eventDateStr,
     eventType,
     guestCount,
     notes,
@@ -70,7 +71,7 @@ router.post("/", requireRole("user"), async (req: AuthRequest, res): Promise<voi
 });
 
 router.get("/:id", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const id = parseInt(req.params.id ?? "");
+  const id = parseInt(String(req.params.id ?? ""));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const [booking] = await db.select().from(bookingsTable).where(eq(bookingsTable.id, id));
   if (!booking) { res.status(404).json({ error: "Booking not found" }); return; }
@@ -91,7 +92,7 @@ router.get("/:id", requireAuth, async (req: AuthRequest, res): Promise<void> => 
 });
 
 router.post("/:id/approve", requireRole("owner"), async (req: AuthRequest, res): Promise<void> => {
-  const id = parseInt(req.params.id ?? "");
+  const id = parseInt(String(req.params.id ?? ""));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const [booking] = await db.select().from(bookingsTable).where(eq(bookingsTable.id, id));
   if (!booking) { res.status(404).json({ error: "Not found" }); return; }
@@ -102,7 +103,7 @@ router.post("/:id/approve", requireRole("owner"), async (req: AuthRequest, res):
 });
 
 router.post("/:id/reject", requireRole("owner"), async (req: AuthRequest, res): Promise<void> => {
-  const id = parseInt(req.params.id ?? "");
+  const id = parseInt(String(req.params.id ?? ""));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const parsed = RejectBookingBody.safeParse(req.body);
   const [booking] = await db.select().from(bookingsTable).where(eq(bookingsTable.id, id));
@@ -117,7 +118,7 @@ router.post("/:id/reject", requireRole("owner"), async (req: AuthRequest, res): 
 });
 
 router.post("/:id/cancel", requireRole("user"), async (req: AuthRequest, res): Promise<void> => {
-  const id = parseInt(req.params.id ?? "");
+  const id = parseInt(String(req.params.id ?? ""));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const [booking] = await db.select().from(bookingsTable).where(eq(bookingsTable.id, id));
   if (!booking) { res.status(404).json({ error: "Not found" }); return; }
@@ -127,7 +128,7 @@ router.post("/:id/cancel", requireRole("user"), async (req: AuthRequest, res): P
 });
 
 router.patch("/:id/payment", requireRole("admin"), async (req: AuthRequest, res): Promise<void> => {
-  const id = parseInt(req.params.id ?? "");
+  const id = parseInt(String(req.params.id ?? ""));
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const parsed = UpdatePaymentStatusBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }

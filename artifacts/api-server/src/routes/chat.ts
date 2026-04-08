@@ -7,7 +7,7 @@ import { requireAuth, type AuthRequest } from "../middlewares/auth";
 const router = Router();
 
 router.get("/:bookingId", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const bookingId = parseInt(req.params.bookingId ?? "");
+  const bookingId = parseInt(String(req.params.bookingId ?? ""));
   if (isNaN(bookingId)) { res.status(400).json({ error: "Invalid bookingId" }); return; }
   const [booking] = await db.select().from(bookingsTable).where(eq(bookingsTable.id, bookingId));
   if (!booking) { res.status(404).json({ error: "Booking not found" }); return; }
@@ -29,7 +29,7 @@ router.get("/:bookingId", requireAuth, async (req: AuthRequest, res): Promise<vo
 });
 
 router.post("/:bookingId", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const bookingId = parseInt(req.params.bookingId ?? "");
+  const bookingId = parseInt(String(req.params.bookingId ?? ""));
   if (isNaN(bookingId)) { res.status(400).json({ error: "Invalid bookingId" }); return; }
   const parsed = SendChatMessageBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }

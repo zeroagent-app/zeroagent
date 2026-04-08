@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, venuesTable, usersTable, bookingsTable } from "@workspace/db";
-import { eq, and, gte, lte, sql, count, countDistinct } from "drizzle-orm";
+import { eq, and, gte, lte, count, countDistinct, or, ilike } from "drizzle-orm";
 import { CreateVenueBody, UpdateVenueBody } from "@workspace/api-zod";
 import { requireAuth, requireRole, type AuthRequest } from "../middlewares/auth";
 
@@ -29,10 +29,12 @@ router.get("/featured", async (req, res): Promise<void> => {
       description: venuesTable.description,
       city: venuesTable.city,
       address: venuesTable.address,
+      area: venuesTable.area,
       capacity: venuesTable.capacity,
       pricePerDay: venuesTable.pricePerDay,
       eventTypes: venuesTable.eventTypes,
       images: venuesTable.images,
+      videos: venuesTable.videos,
       status: venuesTable.status,
       createdAt: venuesTable.createdAt,
     })
@@ -53,10 +55,12 @@ router.get("/my", requireRole("owner"), async (req: AuthRequest, res): Promise<v
       description: venuesTable.description,
       city: venuesTable.city,
       address: venuesTable.address,
+      area: venuesTable.area,
       capacity: venuesTable.capacity,
       pricePerDay: venuesTable.pricePerDay,
       eventTypes: venuesTable.eventTypes,
       images: venuesTable.images,
+      videos: venuesTable.videos,
       status: venuesTable.status,
       createdAt: venuesTable.createdAt,
     })
@@ -67,13 +71,14 @@ router.get("/my", requireRole("owner"), async (req: AuthRequest, res): Promise<v
 });
 
 router.get("/", async (req, res): Promise<void> => {
-  const { city, minCapacity, maxPrice, eventType, page = "1", limit = "12" } = req.query as Record<string, string>;
+  const { city, area, minCapacity, maxPrice, eventType, page = "1", limit = "12" } = req.query as Record<string, string>;
   const pageNum = Math.max(1, parseInt(page));
   const limitNum = Math.min(50, Math.max(1, parseInt(limit)));
   const offset = (pageNum - 1) * limitNum;
 
   const conditions = [eq(venuesTable.status, "approved")];
   if (city) conditions.push(eq(venuesTable.city, city));
+  if (area) conditions.push(eq(venuesTable.area, area));
   if (minCapacity) conditions.push(gte(venuesTable.capacity, parseInt(minCapacity)));
   if (maxPrice) conditions.push(lte(venuesTable.pricePerDay, maxPrice));
 
@@ -86,10 +91,12 @@ router.get("/", async (req, res): Promise<void> => {
       description: venuesTable.description,
       city: venuesTable.city,
       address: venuesTable.address,
+      area: venuesTable.area,
       capacity: venuesTable.capacity,
       pricePerDay: venuesTable.pricePerDay,
       eventTypes: venuesTable.eventTypes,
       images: venuesTable.images,
+      videos: venuesTable.videos,
       status: venuesTable.status,
       createdAt: venuesTable.createdAt,
     })
@@ -101,9 +108,7 @@ router.get("/", async (req, res): Promise<void> => {
   const total = totalRow?.count ?? 0;
 
   let venues = await baseQuery.limit(limitNum).offset(offset);
-  if (eventType) {
-    venues = venues.filter(v => v.eventTypes.includes(eventType));
-  }
+  if (eventType) venues = venues.filter(v => v.eventTypes.includes(eventType));
 
   res.json({
     venues: venues.map(v => ({ ...v, pricePerDay: Number(v.pricePerDay), ownerName: v.ownerName ?? "" })),
@@ -126,10 +131,12 @@ router.get("/:id", async (req, res): Promise<void> => {
       description: venuesTable.description,
       city: venuesTable.city,
       address: venuesTable.address,
+      area: venuesTable.area,
       capacity: venuesTable.capacity,
       pricePerDay: venuesTable.pricePerDay,
       eventTypes: venuesTable.eventTypes,
       images: venuesTable.images,
+      videos: venuesTable.videos,
       status: venuesTable.status,
       createdAt: venuesTable.createdAt,
     })
@@ -155,17 +162,19 @@ router.get("/:id", async (req, res): Promise<void> => {
 router.post("/", requireRole("owner"), async (req: AuthRequest, res): Promise<void> => {
   const parsed = CreateVenueBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const { name, description, city, address, capacity, pricePerDay, eventTypes, images } = parsed.data;
+  const { name, description, city, address, area, capacity, pricePerDay, eventTypes, images, videos } = parsed.data as any;
   const [venue] = await db.insert(venuesTable).values({
     ownerId: req.userId!,
     name,
     description,
     city,
+    area: area ?? null,
     address,
     capacity,
     pricePerDay: String(pricePerDay),
     eventTypes: eventTypes ?? [],
     images: images ?? [],
+    videos: videos ?? [],
     status: "pending",
   }).returning();
   if (!venue) { res.status(500).json({ error: "Failed to create venue" }); return; }
@@ -184,15 +193,17 @@ router.put("/:id", requireRole("owner", "admin"), async (req: AuthRequest, res):
     res.status(403).json({ error: "Forbidden" }); return;
   }
   const updates: Partial<typeof venuesTable.$inferInsert> = {};
-  const d = parsed.data;
+  const d = parsed.data as any;
   if (d.name !== undefined) updates.name = d.name;
   if (d.description !== undefined) updates.description = d.description;
   if (d.city !== undefined) updates.city = d.city;
+  if (d.area !== undefined) updates.area = d.area;
   if (d.address !== undefined) updates.address = d.address;
   if (d.capacity !== undefined) updates.capacity = d.capacity;
   if (d.pricePerDay !== undefined) updates.pricePerDay = String(d.pricePerDay);
   if (d.eventTypes !== undefined) updates.eventTypes = d.eventTypes;
   if (d.images !== undefined) updates.images = d.images;
+  if (d.videos !== undefined) updates.videos = d.videos;
   const [updated] = await db.update(venuesTable).set(updates).where(eq(venuesTable.id, id)).returning();
   const [owner] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, updated!.ownerId));
   res.json({ ...updated, pricePerDay: Number(updated!.pricePerDay), ownerName: owner?.name ?? "" });

@@ -12,7 +12,36 @@ import { ChevronLeft, Upload } from "lucide-react";
 import { Link } from "wouter";
 
 const EVENT_TYPES = ["Wedding", "Mehndi", "Valima", "Engagement", "Birthday Party", "Corporate Event", "Conference", "Gala Dinner"];
-const CITIES = ["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", "Peshawar", "Quetta"];
+const AREAS = [
+  "Korangi No. 2½",
+  "Korangi No. 4",
+  "Korangi No. 5",
+  "Korangi No. 6",
+  "Sector 32",
+  "Sector 33",
+  "Sector 36",
+  "Sector 37",
+  "Sector 38",
+  "Sector 39",
+  "Sector 40",
+  "Sector 41",
+  "Sector 42",
+  "Sector 43",
+  "Sector 44",
+  "Sector 45",
+  "Sector 46",
+  "Sector 47",
+  "Sector 48",
+  "Sector 49",
+  "Sector 50",
+  "Sector 51",
+  "Landhi No. 01",
+  "Landhi No. 02",
+  "Landhi No. 03",
+  "Landhi No. 04",
+  "Landhi No. 05",
+  "Landhi No. 06",
+];
 
 export default function VenueForm() {
   const [isEditRoute, editParams] = useRoute("/dashboard/venue/:id/edit");
@@ -22,7 +51,8 @@ export default function VenueForm() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [city, setCity] = useState("");
+  const [city, setCity] = useState("Karachi");
+  const [area, setArea] = useState("");
   const [address, setAddress] = useState("");
   const [capacity, setCapacity] = useState("");
   const [pricePerDay, setPricePerDay] = useState("");
@@ -44,7 +74,8 @@ export default function VenueForm() {
     if (existing) {
       setName(existing.name ?? "");
       setDescription(existing.description ?? "");
-      setCity(existing.city ?? "");
+      setCity(existing.city ?? "Karachi");
+      setArea(existing.area ?? "");
       setAddress(existing.address ?? "");
       setCapacity(String(existing.capacity ?? ""));
       setPricePerDay(String(existing.pricePerDay ?? ""));
@@ -70,13 +101,15 @@ export default function VenueForm() {
     const videoFileList = videoFiles.map(file => URL.createObjectURL(file));
     const payload = {
       name,
-      description: [description, videoUrlList.length ? `Videos: ${videoUrlList.join(", ")}` : "", videoFileList.length ? `Uploaded videos: ${videoFileList.join(", ")}` : ""].filter(Boolean).join("\n\n"),
+      description: [description, `District: Karachi`, area ? `Area: ${area}` : "", videoUrlList.length ? `Videos: ${videoUrlList.join(", ")}` : "", videoFileList.length ? `Uploaded videos: ${videoFileList.join(", ")}` : ""].filter(Boolean).join("\n\n"),
       city,
+      area,
       address,
       capacity: parseInt(capacity),
       pricePerDay: parseFloat(pricePerDay),
       eventTypes: selectedEventTypes,
       images: [...imageUrlList, ...imageFileList],
+      videos: [...videoUrlList, ...videoFileList],
     };
     try {
       if (editId) {
@@ -121,6 +154,15 @@ export default function VenueForm() {
         </div>
 
         <div className="space-y-1.5">
+          <Label>District / Area</Label>
+          <select value={area} onChange={e => setArea(e.target.value)} required className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring">
+            <option value="">Select Korangi / Landhi area</option>
+            {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+          <p className="text-xs text-muted-foreground">Listings are focused on Korangi district, Karachi.</p>
+        </div>
+
+        <div className="space-y-1.5">
           <Label>Hero / Media</Label>
           <div className="rounded-xl border border-dashed border-border p-4 space-y-4 bg-muted/30">
             <div className="space-y-1.5">
@@ -149,10 +191,7 @@ export default function VenueForm() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label>City</Label>
-            <select value={city} onChange={e => setCity(e.target.value)} required className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring">
-              <option value="">Select city</option>
-              {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <Input value="Karachi" disabled className="bg-muted" />
           </div>
           <div className="space-y-1.5">
             <Label>Address</Label>

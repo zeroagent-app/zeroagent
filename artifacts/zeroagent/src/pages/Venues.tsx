@@ -5,21 +5,50 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 const EVENT_TYPES = ["Wedding", "Mehndi", "Valima", "Engagement", "Birthday Party", "Corporate Event", "Conference", "Gala Dinner"];
-const CITIES = ["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", "Peshawar"];
+const AREAS = [
+  "Korangi No. 2½",
+  "Korangi No. 4",
+  "Korangi No. 5",
+  "Korangi No. 6",
+  "Sector 32",
+  "Sector 33",
+  "Sector 36",
+  "Sector 37",
+  "Sector 38",
+  "Sector 39",
+  "Sector 40",
+  "Sector 41",
+  "Sector 42",
+  "Sector 43",
+  "Sector 44",
+  "Sector 45",
+  "Sector 46",
+  "Sector 47",
+  "Sector 48",
+  "Sector 49",
+  "Sector 50",
+  "Sector 51",
+  "Landhi No. 01",
+  "Landhi No. 02",
+  "Landhi No. 03",
+  "Landhi No. 04",
+  "Landhi No. 05",
+  "Landhi No. 06",
+];
 
 export default function Venues() {
-  const [city, setCity] = useState("");
+  const [area, setArea] = useState("");
   const [eventType, setEventType] = useState("");
   const [minCapacity, setMinCapacity] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [page, setPage] = useState(1);
-  const [showFilters, setShowFilters] = useState(false);
 
   const { data, isLoading } = useListVenues({
-    city: city || undefined,
+    city: "Karachi",
+    area: area || undefined,
     eventType: eventType || undefined,
     minCapacity: minCapacity ? parseInt(minCapacity) : undefined,
     maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
@@ -31,25 +60,24 @@ export default function Venues() {
   const totalPages = result?.totalPages ?? 1;
   const total = result?.total ?? 0;
 
-  const clearFilters = () => { setCity(""); setEventType(""); setMinCapacity(""); setMaxPrice(""); setPage(1); };
+  const clearFilters = () => { setArea(""); setEventType(""); setMinCapacity(""); setMaxPrice(""); setPage(1); };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-1">Event Spaces</h1>
-        <p className="text-muted-foreground">Find the perfect venue for your event in Pakistan</p>
+        <h1 className="text-3xl font-bold text-foreground mb-1">Korangi Event Spaces</h1>
+        <p className="text-muted-foreground">Browse venues in Korangi, Landhi, and nearby Karachi sub-divisions</p>
       </div>
 
-      {/* Filter bar */}
       <div className="bg-card border border-card-border rounded-xl p-4 mb-8 shadow-sm">
         <div className="flex flex-wrap gap-3 items-end">
           <div className="flex-1 min-w-48">
-            <Label className="text-xs text-muted-foreground mb-1 block">City</Label>
-            <Select value={city} onValueChange={v => { setCity(v === "__all__" ? "" : v); setPage(1); }}>
-              <SelectTrigger className="h-9"><SelectValue placeholder="All cities" /></SelectTrigger>
+            <Label className="text-xs text-muted-foreground mb-1 block">Area / Sub-division</Label>
+            <Select value={area} onValueChange={v => { setArea(v === "__all__" ? "" : v); setPage(1); }}>
+              <SelectTrigger className="h-9"><SelectValue placeholder="All Korangi areas" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="__all__">All cities</SelectItem>
-                {CITIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                <SelectItem value="__all__">All Korangi areas</SelectItem>
+                {AREAS.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -71,7 +99,7 @@ export default function Venues() {
             <Label className="text-xs text-muted-foreground mb-1 block">Max Price (PKR)</Label>
             <Input className="h-9" placeholder="e.g. 300000" value={maxPrice} onChange={e => { setMaxPrice(e.target.value); setPage(1); }} type="number" />
           </div>
-          {(city || eventType || minCapacity || maxPrice) && (
+          {(area || eventType || minCapacity || maxPrice) && (
             <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 text-muted-foreground hover:text-destructive">
               <X size={14} className="mr-1" /> Clear
             </Button>
@@ -79,7 +107,6 @@ export default function Venues() {
         </div>
       </div>
 
-      {/* Results */}
       <div className="mb-4 text-sm text-muted-foreground">
         {isLoading ? "Loading..." : `${total} venue${total !== 1 ? "s" : ""} found`}
       </div>
@@ -100,7 +127,6 @@ export default function Venues() {
         </div>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center gap-2 mt-10">
           <Button variant="outline" onClick={() => setPage(p => Math.max(1, p-1))} disabled={page === 1}>Previous</Button>

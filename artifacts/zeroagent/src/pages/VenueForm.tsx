@@ -57,8 +57,8 @@ export default function VenueForm() {
   const [capacity, setCapacity] = useState("");
   const [pricePerDay, setPricePerDay] = useState("");
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
-  const [imageUrls, setImageUrls] = useState("");
-  const [videoUrls, setVideoUrls] = useState("");
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
@@ -78,8 +78,6 @@ export default function VenueForm() {
       setCapacity(String(existing.capacity ?? ""));
       setPricePerDay(String(existing.pricePerDay ?? ""));
       setSelectedEventTypes(existing.eventTypes ?? []);
-      setImageUrls((existing.images ?? []).join("\n"));
-      setVideoUrls((existing.videos ?? []).join("\n"));
     }
   }, [existing]);
 
@@ -91,11 +89,11 @@ export default function VenueForm() {
     setSelectedEventTypes(prev => prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]);
   };
 
+  const fileNames = (files: File[]) => files.map(file => file.name);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    const images = imageUrls.split("\n").map(s => s.trim()).filter(Boolean);
-    const videos = videoUrls.split("\n").map(s => s.trim()).filter(Boolean);
     const payload = {
       name,
       description,
@@ -105,8 +103,8 @@ export default function VenueForm() {
       capacity: parseInt(capacity),
       pricePerDay: parseFloat(pricePerDay),
       eventTypes: selectedEventTypes,
-      images,
-      videos,
+      images: fileNames(imageFiles),
+      videos: fileNames(videoFiles),
     };
     try {
       if (editId) {
@@ -160,17 +158,17 @@ export default function VenueForm() {
         </div>
 
         <div className="space-y-1.5">
-          <Label>Media URLs</Label>
+          <Label>Media Uploads</Label>
           <div className="rounded-xl border border-dashed border-border p-4 space-y-4 bg-muted/30">
             <div className="space-y-1.5">
-              <Label className="text-sm text-muted-foreground">Image URLs</Label>
-              <Textarea placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg" value={imageUrls} onChange={e => setImageUrls(e.target.value)} rows={3} />
-              <p className="text-xs text-muted-foreground">Paste full image URLs, one per line</p>
+              <Label className="text-sm text-muted-foreground flex items-center gap-2"><Upload size={14} /> Upload Images</Label>
+              <Input type="file" accept="image/*" multiple onChange={e => setImageFiles(Array.from(e.target.files ?? []))} />
+              <p className="text-xs text-muted-foreground">Upload multiple venue images at once.</p>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm text-muted-foreground flex items-center gap-2"><Upload size={14} /> Video URLs</Label>
-              <Textarea placeholder="https://example.com/video.mp4" value={videoUrls} onChange={e => setVideoUrls(e.target.value)} rows={2} />
-              <p className="text-xs text-muted-foreground">Add video links for venue walkthroughs or promos</p>
+              <Label className="text-sm text-muted-foreground flex items-center gap-2"><Upload size={14} /> Upload Videos</Label>
+              <Input type="file" accept="video/*" multiple onChange={e => setVideoFiles(Array.from(e.target.files ?? []))} />
+              <p className="text-xs text-muted-foreground">Upload multiple venue videos at once.</p>
             </div>
           </div>
         </div>
